@@ -25,9 +25,12 @@ class Activity(db.Model, SerializerMixin):
     difficulty = db.Column(db.Integer)
 
     # Add relationship
-    
+
+    signups = db.relationship('Signup', back_populates='activity', cascade='all, delete-orphan', overlaps="activities,campers")
+    campers = db.relationship('Camper', secondary='signups', back_populates='activities', overlaps="signups")
     # Add serialization rules
-    
+    serialize_only = ('id', 'name', 'difficulty', )
+    serialize_rules = ('-signups.activity', '-campers.activities')
     def __repr__(self):
         return f'<Activity {self.id}: {self.name}>'
 
@@ -41,27 +44,54 @@ class Camper(db.Model, SerializerMixin):
 
     # Add relationship
     
+    signups = db.relationship('Signup', back_populates='camper', cascade='all, delete-orphan', overlaps="activities,campers")
+    activities = db.relationship('Activity', secondary='signups', back_populates='campers', overlaps="signups")
     # Add serialization rules
     
+    serialize_rules = ('-signups.camper', '-activities.campers')
     # Add validation
+    @validates('age')
+    def age_validation(self,key,age):
+        if isinstance(age, int) and 8 <= age <= 18:
+            return age
+        else:
+            raise ValueError("Age must be between 8 and 18")
     
-    
+    @validates('name')
+    def name_val(self,key,name):
+        if not name:
+            raise ValueError("Must have name")
+        return name
     def __repr__(self):
         return f'<Camper {self.id}: {self.name}>'
-
+    
 
 class Signup(db.Model, SerializerMixin):
     __tablename__ = 'signups'
 
     id = db.Column(db.Integer, primary_key=True)
     time = db.Column(db.Integer)
-
-    # Add relationships
     
+    activity_id = db.Column(db.Integer, db.ForeignKey('activities.id'))
+    camper_id = db.Column(db.Integer, db.ForeignKey('campers.id'))
+
+    
+    # Add relationships
+    camper = db.relationship('Camper', back_populates='signups', overlaps="activities,campers")
+    activity = db.relationship('Activity', back_populates='signups', overlaps="activities,campers")
+
     # Add serialization rules
     
+    serialize_rules = ('-camper.signups', '-activity.signups')
     # Add validation
-    
+    @validates('time')
+    def time_validation(self,key,time):
+        if 0 <= time <= 23:
+            return time
+        else:
+            raise ValueError("Time must be between 0 and 23")
+
+
     def __repr__(self):
         return f'<Signup {self.id}>'
 
