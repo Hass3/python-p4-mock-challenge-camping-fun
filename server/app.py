@@ -27,7 +27,7 @@ def home():
 
 
 class Campers(Resource):
-    def get(new_signup):
+    def get(self):
         campers = []
         for camper in Camper.query.all():
             camper_json={
@@ -39,7 +39,7 @@ class Campers(Resource):
         return make_response(campers, 200)
     
 
-    def post(new_signup):
+    def post(self):
         
         try:
             new_camper = Camper(name = request.get_json()['name'], age = request.get_json()['age'])
@@ -58,14 +58,14 @@ class Campers(Resource):
 class Campers_by_id(Resource):
 
 
-    def get(new_signup, id):
+    def get(self, id):
         camper = Camper.query.filter_by(id=id).first()        
         if not camper:
             return {"error": "Camper not found"}, 404
         return camper.to_dict(), 200
     
 
-    def patch(new_signup,id):
+    def patch(self,id):
         camper = Camper.query.filter_by(id=id).first()        
         if not camper:
             return {"error": "Camper not found"}, 404
@@ -88,12 +88,12 @@ class Campers_by_id(Resource):
 
 
 class Activities(Resource):
-    def get(new_signup):
+    def get(self):
         activities = [activity.to_dict() for activity in Activity.query.all() ]
         return make_response(activities, 200)
     
 class Activity_by_id(Resource):
-    def delete(new_signup,id):
+    def delete(self,id):
         activity = Activity.query.filter_by(id=id).first()
         
         if not activity:
@@ -106,7 +106,7 @@ class Activity_by_id(Resource):
 
 
 class SignupResource(Resource):
-    def post(new_signup):
+    def post(self):
         try:
             new_signup = Signup(camper_id = request.get_json()['camper_id'], 
             activity_id = request.get_json()['activity_id'], time= request.get_json()['time'])
